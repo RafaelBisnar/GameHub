@@ -1,8 +1,11 @@
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { Toast } from '@/components/Toast';
+import { GameProvider } from '@/context/GameContext';
+import { ToastProvider } from '@/context/ToastContext';
+import { RootTabs } from '@/navigation/RootTabs';
 import { colors } from '@/theme/colors';
 
 const navigationTheme = {
@@ -21,17 +24,15 @@ const navigationTheme = {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme}>
-        <View style={styles.placeholder} />
-      </NavigationContainer>
-      <StatusBar style="light" />
+      <ToastProvider>
+        <GameProvider>
+          <NavigationContainer theme={navigationTheme}>
+            <RootTabs />
+          </NavigationContainer>
+          <Toast />
+          <StatusBar style="light" />
+        </GameProvider>
+      </ToastProvider>
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  placeholder: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-});
