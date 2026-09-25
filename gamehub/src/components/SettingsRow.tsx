@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import type { ThemeColors } from '@/theme/colors';
 
 interface SettingsRowProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -21,6 +22,8 @@ export function SettingsRow({
   onPress,
   showDivider = true,
 }: SettingsRowProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const body = (
     <View style={[styles.row, showDivider && styles.divider]}>
       <View style={styles.iconCircle}>
@@ -40,37 +43,38 @@ export function SettingsRow({
   return body;
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  divider: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.background,
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: `${colors.primary}26`,
-  },
-  labelGroup: {
-    flex: 1,
-    gap: 2,
-  },
-  label: {
-    color: colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    fontSize: 11,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+    },
+    divider: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.background,
+    },
+    iconCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: `${colors.primary}26`,
+    },
+    labelGroup: {
+      flex: 1,
+      gap: 2,
+    },
+    label: {
+      color: colors.textPrimary,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    subtitle: {
+      color: colors.textSecondary,
+      fontSize: 11,
+    },
+  });

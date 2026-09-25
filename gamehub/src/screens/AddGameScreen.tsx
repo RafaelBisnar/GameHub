@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 
+import { getErrorMessage } from '@/api/client';
 import type { GameFormValues } from '@/components/GameForm';
 import { GameForm } from '@/components/GameForm';
 import { useGames } from '@/context/GameContext';
@@ -16,8 +17,13 @@ export function AddGameScreen() {
   const { showToast } = useToast();
   const [formKey, setFormKey] = useState(0);
 
-  const handleSubmit = (values: GameFormValues) => {
-    addGame(values);
+  const handleSubmit = async (values: GameFormValues) => {
+    try {
+      await addGame(values);
+    } catch (error) {
+      showToast(getErrorMessage(error), 'error');
+      return;
+    }
     showToast(`${values.title} has been added to your library.`, 'success');
     setFormKey((key) => key + 1);
     navigation

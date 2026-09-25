@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { useThemedStyles } from '@/context/ThemeContext';
+import type { ThemeColors } from '@/theme/colors';
 
 interface FormFieldProps {
   label: string;
@@ -11,6 +12,7 @@ interface FormFieldProps {
 }
 
 export function FormField({ label, required, error, children }: FormFieldProps) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.field}>
       <Text style={styles.label}>
@@ -23,20 +25,21 @@ export function FormField({ label, required, error, children }: FormFieldProps) 
   );
 }
 
-const styles = StyleSheet.create({
-  field: {
-    gap: 6,
-  },
-  label: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  required: {
-    color: colors.accent,
-  },
-  error: {
-    color: colors.accent,
-    fontSize: 12,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    field: {
+      gap: 6,
+    },
+    label: {
+      color: colors.textPrimary,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    required: {
+      color: colors.accent,
+    },
+    error: {
+      color: colors.accent,
+      fontSize: 12,
+    },
+  });

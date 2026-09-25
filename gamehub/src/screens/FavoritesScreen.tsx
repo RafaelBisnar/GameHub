@@ -4,20 +4,28 @@ import { useNavigation } from '@react-navigation/native';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ErrorView } from '@/components/ErrorView';
 import { FavoriteListItem } from '@/components/FavoriteListItem';
 import { LoadingView } from '@/components/LoadingView';
 import { useGames } from '@/context/GameContext';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import type { RootTabParamList } from '@/navigation/RootTabs';
-import { colors } from '@/theme/colors';
+import type { ThemeColors } from '@/theme/colors';
 
 export function FavoritesScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList, 'Favorites'>>();
-  const { games, isLoading, toggleFavorite } = useGames();
+  const { games, isLoading, loadError, reloadGames, toggleFavorite } = useGames();
 
   const favoriteGames = games.filter((game) => game.isFavorite);
 
   if (isLoading) {
     return <LoadingView />;
+  }
+
+  if (loadError) {
+    return <ErrorView message={loadError} onRetry={reloadGames} />;
   }
 
   return (
@@ -54,60 +62,61 @@ export function FavoritesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    padding: 20,
-    paddingBottom: 12,
-    gap: 4,
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    fontSize: 13,
-  },
-  listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    flexGrow: 1,
-  },
-  separator: {
-    height: 12,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingTop: 80,
-  },
-  emptyTitle: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  exploreButton: {
-    marginTop: 4,
-    backgroundColor: colors.primary,
-    borderRadius: 14,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  exploreButtonText: {
-    color: colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      padding: 20,
+      paddingBottom: 12,
+      gap: 4,
+    },
+    title: {
+      color: colors.textPrimary,
+      fontSize: 24,
+      fontWeight: '700',
+    },
+    subtitle: {
+      color: colors.textSecondary,
+      fontSize: 13,
+    },
+    listContent: {
+      paddingHorizontal: 20,
+      paddingBottom: 40,
+      flexGrow: 1,
+    },
+    separator: {
+      height: 12,
+    },
+    emptyState: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+      paddingTop: 80,
+    },
+    emptyTitle: {
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    exploreButton: {
+      marginTop: 4,
+      backgroundColor: colors.primary,
+      borderRadius: 14,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 10,
+      elevation: 6,
+    },
+    exploreButtonText: {
+      color: colors.onPrimary,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+  });

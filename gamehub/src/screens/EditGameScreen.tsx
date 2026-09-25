@@ -4,17 +4,21 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { getErrorMessage } from '@/api/client';
 import type { GameFormValues } from '@/components/GameForm';
 import { GameForm } from '@/components/GameForm';
 import { useGames } from '@/context/GameContext';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
 import type { GamesStackParamList } from '@/navigation/GamesStack';
-import { colors } from '@/theme/colors';
+import type { ThemeColors } from '@/theme/colors';
 
 type EditGameRouteProp = RouteProp<GamesStackParamList, 'EditGame'>;
 type EditGameNavigationProp = NativeStackNavigationProp<GamesStackParamList, 'EditGame'>;
 
 export function EditGameScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { params } = useRoute<EditGameRouteProp>();
   const navigation = useNavigation<EditGameNavigationProp>();
   const { games, updateGame } = useGames();
@@ -34,8 +38,13 @@ export function EditGameScreen() {
     );
   }
 
-  const handleSubmit = (values: GameFormValues) => {
-    updateGame(game.id, values);
+  const handleSubmit = async (values: GameFormValues) => {
+    try {
+      await updateGame(game.id, values);
+    } catch (error) {
+      showToast(getErrorMessage(error), 'error');
+      return;
+    }
     showToast(`${values.title} has been updated.`, 'success');
     navigation.goBack();
   };
@@ -50,29 +59,30 @@ export function EditGameScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  notFound: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    backgroundColor: colors.background,
-    padding: 24,
-  },
-  notFoundText: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  notFoundButton: {
-    marginTop: 8,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  notFoundButtonText: {
-    color: colors.textPrimary,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    notFound: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      backgroundColor: colors.background,
+      padding: 24,
+    },
+    notFoundText: {
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    notFoundButton: {
+      marginTop: 8,
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+    },
+    notFoundButtonText: {
+      color: colors.onPrimary,
+      fontWeight: '700',
+    },
+  });

@@ -16,3 +16,10 @@ export interface Game {
   createdAt: string;
   updatedAt: string;
 }
+
+// What the app sends to create a game; the server fills in id and timestamps.
+export type GameInput = Omit<Game, 'id' | 'createdAt' | 'updatedAt' | 'isFavorite'> & {
+  isFavorite?: boolean;
+};
+
+export type GameUpdate = Partial<Omit<Game, 'id' | 'createdAt' | 'updatedAt'>>;

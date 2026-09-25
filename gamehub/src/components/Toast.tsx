@@ -3,10 +3,13 @@ import { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
-import { colors } from '@/theme/colors';
+import type { ThemeColors } from '@/theme/colors';
 
 export function Toast() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { toast } = useToast();
   const insets = useSafeAreaInsets();
   const [opacity] = useState(() => new Animated.Value(0));
@@ -40,28 +43,29 @@ export function Toast() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  text: {
-    flex: 1,
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      position: 'absolute',
+      left: 20,
+      right: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 10,
+      elevation: 8,
+    },
+    text: {
+      flex: 1,
+      color: colors.textPrimary,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+  });

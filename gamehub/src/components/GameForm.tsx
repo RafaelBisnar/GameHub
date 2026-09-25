@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,10 +13,13 @@ import {
   View,
 } from 'react-native';
 
+import { DateField } from '@/components/DateField';
 import { FormField } from '@/components/FormField';
 import { SelectField } from '@/components/SelectField';
-import { colors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import type { ThemeColors } from '@/theme/colors';
 import type { Game, GameStatus } from '@/types/Game';
+import { parseDateString, toDateString } from '@/utils/date';
 
 const GENRES = ['Action', 'Adventure', 'RPG', 'Strategy', 'Sports', 'Simulation'];
 const PLATFORMS = ['PC', 'PlayStation', 'Xbox', 'Mobile', 'Switch'];
@@ -41,11 +45,14 @@ type FormErrors = Partial<
 interface GameFormProps {
   initialValues?: Game;
   submitLabel: string;
-  onSubmit: (values: GameFormValues) => void;
+  // May return a promise; the submit button shows "Saving..." until it settles.
+  onSubmit: (values: GameFormValues) => Promise<void> | void;
   onCancel?: () => void;
 }
 
 export function GameForm({ initialValues, submitLabel, onSubmit, onCancel }: GameFormProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [title, setTitle] = useState(initialValues?.title ?? '');
   const [image, setImage] = useState(initialValues?.image ?? '');
   const [genre, setGenre] = useState<string | null>(initialValues?.genre ?? null);
@@ -61,6 +68,7 @@ export function GameForm({ initialValues, submitLabel, onSubmit, onCancel }: Gam
   const [description, setDescription] = useState(initialValues?.description ?? '');
   const [isActive, setIsActive] = useState(initialValues?.status !== 'Inactive');
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = (): boolean => {
     const nextErrors: FormErrors = {};
@@ -70,7 +78,8 @@ export function GameForm({ initialValues, submitLabel, onSubmit, onCancel }: Gam
     if (!platform) nextErrors.platform = 'Platform is required';
     if (!developer.trim()) nextErrors.developer = 'Developer is required';
 
-    if (releaseDate.trim() && Number.isNaN(new Date(releaseDate.trim()).getTime())) {
+    // Only reachable on web, where the date is typed; the phone picker always gives a valid date.
+    if (releaseDate.trim() && !parseDateString(releaseDate)) {
       nextErrors.releaseDate = 'Enter a valid date (YYYY-MM-DD)';
     }
 
@@ -85,26 +94,31 @@ export function GameForm({ initialValues, submitLabel, onSubmit, onCancel }: Gam
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (!validate()) return;
+  const handleSubmit = async () => {
+    if (isSubmitting || !validate()) return;
 
     const slug = title.trim().toLowerCase().replace(/[^a-z0-9]+/g, '') || 'newgame';
     const finalImage = image.trim() || `https://picsum.photos/seed/${slug}/400/600`;
-    const finalReleaseDate = releaseDate.trim() || new Date().toISOString().slice(0, 10);
+    const finalReleaseDate = releaseDate.trim() || toDateString(new Date());
     const finalRating = ratingText.trim() ? Number(ratingText.trim()) : 0;
 
-    onSubmit({
-      title: title.trim(),
-      image: finalImage,
-      genre: genre as string,
-      platform: platform as string,
-      developer: developer.trim(),
-      releaseDate: finalReleaseDate,
-      description: description.trim(),
-      rating: finalRating,
-      multiplayerType,
-      status: isActive ? 'Active' : 'Inactive',
-    });
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        title: title.trim(),
+        image: finalImage,
+        genre: genre as string,
+        platform: platform as string,
+        developer: developer.trim(),
+        releaseDate: finalReleaseDate,
+        description: description.trim(),
+        rating: finalRating,
+        multiplayerType,
+        status: isActive ? 'Active' : 'Inactive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -168,13 +182,12 @@ export function GameForm({ initialValues, submitLabel, onSubmit, onCancel }: Gam
         </FormField>
 
         <FormField label="Release Date" error={errors.releaseDate}>
-          <TextInput
-            style={[styles.input, errors.releaseDate && styles.inputError]}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors.textSecondary}
+          <DateField
+            label="Release Date"
             value={releaseDate}
-            onChangeText={setReleaseDate}
-            autoCapitalize="none"
+            placeholder="Select a release date"
+            hasError={Boolean(errors.releaseDate)}
+            onChange={setReleaseDate}
           />
         </FormField>
 
@@ -217,21 +230,29 @@ export function GameForm({ initialValues, submitLabel, onSubmit, onCancel }: Gam
             <Switch
               value={isActive}
               onValueChange={setIsActive}
-              trackColor={{ false: colors.surface, true: colors.primary }}
-              thumbColor={colors.textPrimary}
+              trackColor={{ false: colors.switchTrack, true: colors.primary }}
+              thumbColor={colors.onPrimary}
             />
           </View>
         </FormField>
 
         <View style={styles.buttonRow}>
           {onCancel && (
-            <Pressable style={styles.cancelButton} onPress={onCancel}>
+            <Pressable style={styles.cancelButton} onPress={onCancel} disabled={isSubmitting}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </Pressable>
           )}
-          <Pressable style={styles.submitButton} onPress={handleSubmit}>
-            <Ionicons name="checkmark-circle" size={18} color={colors.textPrimary} />
-            <Text style={styles.submitButtonText}>{submitLabel}</Text>
+          <Pressable
+            style={[styles.submitButton, isSubmitting && styles.buttonDisabled]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color={colors.onPrimary} />
+            ) : (
+              <Ionicons name="checkmark-circle" size={18} color={colors.onPrimary} />
+            )}
+            <Text style={styles.submitButtonText}>{isSubmitting ? 'Saving...' : submitLabel}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -239,83 +260,87 @@ export function GameForm({ initialValues, submitLabel, onSubmit, onCancel }: Gam
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 48,
-    gap: 18,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    color: colors.textPrimary,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: colors.surface,
-  },
-  inputError: {
-    borderColor: colors.accent,
-  },
-  textArea: {
-    minHeight: 100,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  statusText: {
-    color: colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
-  cancelButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 14,
-    paddingVertical: 16,
-    borderWidth: 1,
-    borderColor: colors.textSecondary,
-  },
-  cancelButtonText: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  submitButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: colors.primary,
-    borderRadius: 14,
-    paddingVertical: 16,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  submitButtonText: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: 20,
+      paddingBottom: 48,
+      gap: 18,
+    },
+    input: {
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+      color: colors.textPrimary,
+      fontSize: 14,
+      borderWidth: 1,
+      borderColor: colors.surface,
+    },
+    inputError: {
+      borderColor: colors.accent,
+    },
+    textArea: {
+      minHeight: 100,
+    },
+    statusRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+    },
+    statusText: {
+      color: colors.textPrimary,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 8,
+    },
+    cancelButton: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 14,
+      paddingVertical: 16,
+      borderWidth: 1,
+      borderColor: colors.textSecondary,
+    },
+    cancelButtonText: {
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    submitButton: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: colors.primary,
+      borderRadius: 14,
+      paddingVertical: 16,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 10,
+      elevation: 6,
+    },
+    submitButtonText: {
+      color: colors.onPrimary,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    buttonDisabled: {
+      opacity: 0.7,
+    },
+  });

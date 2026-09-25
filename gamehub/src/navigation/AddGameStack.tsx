@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import { useTheme } from '@/context/ThemeContext';
 import { AddGameScreen } from '@/screens/AddGameScreen';
-import { colors } from '@/theme/colors';
 
 export type AddGameStackParamList = {
   AddGame: undefined;
@@ -10,6 +10,7 @@ export type AddGameStackParamList = {
 const Stack = createNativeStackNavigator<AddGameStackParamList>();
 
 export function AddGameStack() {
+  const { colors } = useTheme();
   return (
     <Stack.Navigator
       screenOptions={{

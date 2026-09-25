@@ -13,11 +13,13 @@ import {
   View,
 } from 'react-native';
 
+import { ErrorView } from '@/components/ErrorView';
 import { GameListItem } from '@/components/GameListItem';
 import { LoadingView } from '@/components/LoadingView';
 import { useGames } from '@/context/GameContext';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import type { GamesStackParamList } from '@/navigation/GamesStack';
-import { colors } from '@/theme/colors';
+import type { ThemeColors } from '@/theme/colors';
 import type { Game } from '@/types/Game';
 
 type SortKey = 'rating' | 'newest' | 'alphabetical';
@@ -31,8 +33,10 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 const RATING_OPTIONS = [4.5, 4.0, 3.5];
 
 export function GamesListScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NativeStackNavigationProp<GamesStackParamList, 'GamesList'>>();
-  const { games, isLoading, toggleFavorite } = useGames();
+  const { games, isLoading, loadError, reloadGames, toggleFavorite } = useGames();
 
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortKey | null>(null);
@@ -98,6 +102,10 @@ export function GamesListScreen() {
 
   if (isLoading) {
     return <LoadingView />;
+  }
+
+  if (loadError) {
+    return <ErrorView message={loadError} onRetry={reloadGames} />;
   }
 
   return (
@@ -256,149 +264,150 @@ export function GamesListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    padding: 20,
-    paddingBottom: 12,
-    gap: 12,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  searchInput: {
-    flex: 1,
-    color: colors.textPrimary,
-    fontSize: 14,
-  },
-  toolbarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  toolbarButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  toolbarButtonText: {
-    color: colors.textPrimary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  resultCount: {
-    flex: 1,
-    color: colors.textSecondary,
-    fontSize: 13,
-  },
-  clearText: {
-    color: colors.accent,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    flexGrow: 1,
-  },
-  separator: {
-    height: 12,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingTop: 80,
-  },
-  emptyTitle: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  emptySubtitle: {
-    color: colors.textSecondary,
-    fontSize: 13,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalSheet: {
-    maxHeight: '75%',
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    gap: 8,
-  },
-  modalTitle: {
-    color: colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '700',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.background,
-  },
-  chipSelected: {
-    backgroundColor: colors.primary,
-  },
-  chipText: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  chipTextSelected: {
-    color: colors.textPrimary,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-  },
-  modalSecondaryButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: colors.background,
-  },
-  modalSecondaryText: {
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  modalPrimaryButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
-  },
-  modalPrimaryText: {
-    color: colors.textPrimary,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      padding: 20,
+      paddingBottom: 12,
+      gap: 12,
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: colors.surface,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
+    searchInput: {
+      flex: 1,
+      color: colors.textPrimary,
+      fontSize: 14,
+    },
+    toolbarRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    toolbarButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    toolbarButtonText: {
+      color: colors.textPrimary,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    resultCount: {
+      flex: 1,
+      color: colors.textSecondary,
+      fontSize: 13,
+    },
+    clearText: {
+      color: colors.accent,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    listContent: {
+      paddingHorizontal: 20,
+      paddingBottom: 40,
+      flexGrow: 1,
+    },
+    separator: {
+      height: 12,
+    },
+    emptyState: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingTop: 80,
+    },
+    emptyTitle: {
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+    emptySubtitle: {
+      color: colors.textSecondary,
+      fontSize: 13,
+    },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalSheet: {
+      maxHeight: '75%',
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      gap: 8,
+    },
+    modalTitle: {
+      color: colors.textPrimary,
+      fontSize: 14,
+      fontWeight: '700',
+      marginTop: 12,
+      marginBottom: 8,
+    },
+    chipRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    chip: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: colors.background,
+    },
+    chipSelected: {
+      backgroundColor: colors.primary,
+    },
+    chipText: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    chipTextSelected: {
+      color: colors.onPrimary,
+    },
+    modalActions: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 20,
+    },
+    modalSecondaryButton: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderRadius: 12,
+      backgroundColor: colors.background,
+    },
+    modalSecondaryText: {
+      color: colors.textPrimary,
+      fontWeight: '600',
+    },
+    modalPrimaryButton: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: 12,
+      borderRadius: 12,
+      backgroundColor: colors.primary,
+    },
+    modalPrimaryText: {
+      color: colors.onPrimary,
+      fontWeight: '700',
+    },
+  });

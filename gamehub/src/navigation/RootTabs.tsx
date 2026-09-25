@@ -2,13 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
+import { useTheme } from '@/context/ThemeContext';
 import { AddGameStack } from '@/navigation/AddGameStack';
 import type { GamesStackParamList } from '@/navigation/GamesStack';
 import { GamesStack } from '@/navigation/GamesStack';
 import { FavoritesScreen } from '@/screens/FavoritesScreen';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
-import { colors } from '@/theme/colors';
 
 export type RootTabParamList = {
   Home: undefined;
@@ -31,6 +31,7 @@ const TAB_ICONS: Record<keyof RootTabParamList, { active: IoniconName; inactive:
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export function RootTabs() {
+  const { colors } = useTheme();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({

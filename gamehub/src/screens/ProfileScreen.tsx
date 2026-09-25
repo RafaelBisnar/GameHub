@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ErrorView } from '@/components/ErrorView';
 import { LoadingView } from '@/components/LoadingView';
 import { SettingsRow } from '@/components/SettingsRow';
 import { StatCard } from '@/components/StatCard';
 import { useGames } from '@/context/GameContext';
-import { colors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import type { ThemeColors } from '@/theme/colors';
 
 const SAMPLE_USER = {
   name: 'Alex Rivera',
@@ -15,7 +17,9 @@ const SAMPLE_USER = {
 };
 
 export function ProfileScreen() {
-  const { games, isLoading } = useGames();
+  const { colors, mode, setMode } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  const { games, isLoading, loadError, reloadGames } = useGames();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const totalGames = games.length;
@@ -25,6 +29,10 @@ export function ProfileScreen() {
     return <LoadingView />;
   }
 
+  if (loadError) {
+    return <ErrorView message={loadError} onRetry={reloadGames} />;
+  }
+
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -32,7 +40,7 @@ export function ProfileScreen() {
 
         <View style={styles.profileHeader}>
           <View style={styles.avatar}>
-            <Ionicons name="person" size={36} color={colors.textPrimary} />
+            <Ionicons name="person" size={36} color={colors.onPrimary} />
           </View>
           <Text style={styles.name}>{SAMPLE_USER.name}</Text>
           <Text style={styles.email}>{SAMPLE_USER.email}</Text>
@@ -58,21 +66,21 @@ export function ProfileScreen() {
                 <Switch
                   value={notificationsEnabled}
                   onValueChange={setNotificationsEnabled}
-                  trackColor={{ false: colors.background, true: colors.primary }}
-                  thumbColor={colors.textPrimary}
+                  trackColor={{ false: colors.switchTrack, true: colors.primary }}
+                  thumbColor={colors.onPrimary}
                 />
               }
             />
             <SettingsRow
-              icon="moon-outline"
+              icon={mode === 'dark' ? 'moon-outline' : 'sunny-outline'}
               label="Dark Mode"
-              subtitle="GameHub is dark themed only"
+              subtitle={mode === 'dark' ? 'On' : 'Off: using light mode'}
               right={
                 <Switch
-                  value
-                  disabled
-                  trackColor={{ false: colors.background, true: colors.primary }}
-                  thumbColor={colors.textPrimary}
+                  value={mode === 'dark'}
+                  onValueChange={(isDark) => setMode(isDark ? 'dark' : 'light')}
+                  trackColor={{ false: colors.switchTrack, true: colors.primary }}
+                  thumbColor={colors.onPrimary}
                 />
               }
             />
@@ -106,58 +114,59 @@ export function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 48,
-    gap: 24,
-  },
-  screenTitle: {
-    color: colors.textPrimary,
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  profileHeader: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  avatar: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    marginBottom: 8,
-  },
-  name: {
-    color: colors.textPrimary,
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  email: {
-    color: colors.textSecondary,
-    fontSize: 13,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  section: {
-    gap: 12,
-  },
-  sectionTitle: {
-    color: colors.textPrimary,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: 20,
+      paddingBottom: 48,
+      gap: 24,
+    },
+    screenTitle: {
+      color: colors.textPrimary,
+      fontSize: 24,
+      fontWeight: '700',
+    },
+    profileHeader: {
+      alignItems: 'center',
+      gap: 6,
+    },
+    avatar: {
+      width: 84,
+      height: 84,
+      borderRadius: 42,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primary,
+      marginBottom: 8,
+    },
+    name: {
+      color: colors.textPrimary,
+      fontSize: 20,
+      fontWeight: '700',
+    },
+    email: {
+      color: colors.textSecondary,
+      fontSize: 13,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    section: {
+      gap: 12,
+    },
+    sectionTitle: {
+      color: colors.textPrimary,
+      fontSize: 17,
+      fontWeight: '700',
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      overflow: 'hidden',
+    },
+  });

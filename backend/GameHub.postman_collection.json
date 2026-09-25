@@ -1,0 +1,88 @@
+{
+  "info": {
+    "name": "GameHub API",
+    "description": "CRUD requests for the GameHub PHP API. Run them top to bottom: 'Create game' saves the new id into the gameId variable, which the later requests use. Change baseUrl in the collection's Variables tab if the address changes (e.g. to https).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://danielrafael.duckdns.org/api" },
+    { "key": "gameId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "1. Health check",
+      "request": { "method": "GET", "url": "{{baseUrl}}/health.php" }
+    },
+    {
+      "name": "2. List all games (Read)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/games.php" }
+    },
+    {
+      "name": "3. Create game (Create)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "if (body.success) { pm.collectionVariables.set('gameId', body.data.id); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman Test Game\",\n  \"image\": \"https://picsum.photos/seed/postman/400/600\",\n  \"genre\": \"Adventure\",\n  \"platform\": \"PC\",\n  \"developer\": \"Postman Studio\",\n  \"releaseDate\": \"2024-05-01\",\n  \"description\": \"Created from Postman.\",\n  \"rating\": 4.1,\n  \"multiplayerType\": \"Co-op\",\n  \"status\": \"Active\"\n}"
+        },
+        "url": "{{baseUrl}}/games.php"
+      }
+    },
+    {
+      "name": "4. Get one game (Read)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/games.php?id={{gameId}}" }
+    },
+    {
+      "name": "5. Update game (Update)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman Test Game (edited)\",\n  \"rating\": 4.8,\n  \"status\": \"Inactive\"\n}"
+        },
+        "url": "{{baseUrl}}/games.php?id={{gameId}}"
+      }
+    },
+    {
+      "name": "6. Mark as favorite (Update)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"isFavorite\": true\n}" },
+        "url": "{{baseUrl}}/games.php?id={{gameId}}"
+      }
+    },
+    {
+      "name": "7. Delete game (Delete)",
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/games.php?id={{gameId}}" }
+    },
+    {
+      "name": "8. Validation error example (expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"\",\n  \"rating\": 9\n}" },
+        "url": "{{baseUrl}}/games.php"
+      }
+    },
+    {
+      "name": "9. Not found example (expect 404)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/games.php?id=999999" }
+    }
+  ]
+}

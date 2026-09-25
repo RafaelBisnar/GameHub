@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
+import { useTheme, useThemedStyles } from '@/context/ThemeContext';
+import type { ThemeColors } from '@/theme/colors';
 
 interface StatCardProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -10,7 +11,10 @@ interface StatCardProps {
   accentColor?: string;
 }
 
-export function StatCard({ icon, label, value, accentColor = colors.primary }: StatCardProps) {
+export function StatCard({ icon, label, value, accentColor: accentColorProp }: StatCardProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  const accentColor = accentColorProp ?? colors.primary;
   return (
     <View style={styles.card}>
       <View style={[styles.iconCircle, { backgroundColor: `${accentColor}33` }]}>
@@ -24,34 +28,35 @@ export function StatCard({ icon, label, value, accentColor = colors.primary }: S
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 16,
-    borderRadius: 14,
-    backgroundColor: colors.surface,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  value: {
-    color: colors.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  label: {
-    color: colors.textSecondary,
-    fontSize: 12,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 16,
+      borderRadius: 14,
+      backgroundColor: colors.surface,
+      shadowColor: colors.accent,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    iconCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    value: {
+      color: colors.textPrimary,
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    label: {
+      color: colors.textSecondary,
+      fontSize: 12,
+    },
+  });
