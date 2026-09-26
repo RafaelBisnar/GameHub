@@ -91,21 +91,36 @@ export async function apiRequest<T>(
     headers['Content-Type'] = 'application/json';
   }
 
+  const response = await fetchText(
+    `${API_URL}/${path}`,
+    {
+      method: httpMethod,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    },
+    timeoutMs
+  );
+  return parseResponse<T>(response.status, response.ok, response.text);
+}
+
+/**
+ * fetch() plus a timeout and friendly network errors. Returns the raw body text;
+ * callers parse it. Used for both our own API and third-party APIs.
+ */
+export async function fetchText(
+  url: string,
+  init: RequestInit = {},
+  timeoutMs = DEFAULT_TIMEOUT_MS
+): Promise<{ status: number; ok: boolean; text: string }> {
   // fetch() has no timeout of its own, so abort it ourselves if the server hangs.
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${API_URL}/${path}`, {
-      method: httpMethod,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: controller.signal,
-    });
+    const response = await fetch(url, { ...init, signal: controller.signal });
     const text = await response.text();
-    return parseResponse<T>(response.status, response.ok, text);
-  } catch (error) {
-    if (error instanceof ApiError) throw error;
+    return { status: response.status, ok: response.ok, text };
+  } catch {
     if (controller.signal.aborted) {
       throw new ApiError('The server took too long to respond. Please try again.', null);
     }

@@ -62,7 +62,7 @@ table, and a folder with the same name in the **File Manager**.
 
 | Problem | What to do |
 |---|---|
-| Freehostia says the domain is invalid or refuses a subdomain of another domain | Freehostia won't host this DuckDNS name. Stop here and tell me. The fallback is to use a domain or subdomain Freehostia gave your account (the app only needs a different URL). |
+| Freehostia says the domain is invalid or refuses a subdomain of another domain | Freehostia won't host this DuckDNS name. Stop here. The fallback is to use a domain or subdomain Freehostia gave your account (the app only needs a different URL). |
 | "You have reached the maximum number of domains" | The free plan allows 5. Remove one you don't use. |
 
 ---
@@ -126,11 +126,12 @@ the browser (after Step 5 you'll have a page to test with).
 
 ### HTTP fallback (only if HTTPS can't be enabled)
 
-Tell me "HTTPS failed" and I'll:
+This is what GameHub currently uses:
 
-- add `expo-build-properties` with `android.usesCleartextTraffic: true`, so the
-  APK is allowed to use `http://`; and
-- change the URL to `http://yourname.duckdns.org/api`.
+- the app's `.env` points at `http://yourname.duckdns.org/api` (plain HTTP);
+- this works in Expo Go. A standalone Android build (APK) would additionally
+  need `expo-build-properties` with `android.usesCleartextTraffic: true`,
+  because Android blocks `http://` in release builds by default.
 
 This is a **workaround**: data, including anything typed into the app, travels
 unencrypted, and anyone on the same Wi-Fi could read it. It's acceptable for a
@@ -328,8 +329,7 @@ reload `health.php`. The response now includes an `"error"` message:
 | "The server sent an unexpected response (HTTP …)" | The server replied with a web page instead of API JSON. Open the same URL on the phone's browser to see what it is. |
 | "The server took too long to respond." | The free server is slow or busy. Tap **Try Again**. |
 
-When everything works here, the server side is done. Next is building the APK
-(Phase 5).
+When everything works here, the deployment is done.
 
 ---
 

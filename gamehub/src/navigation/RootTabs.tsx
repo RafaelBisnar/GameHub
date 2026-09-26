@@ -3,7 +3,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
 import { useTheme } from '@/context/ThemeContext';
+import type { AddGameStackParamList } from '@/navigation/AddGameStack';
 import { AddGameStack } from '@/navigation/AddGameStack';
+import type { DiscoverStackParamList } from '@/navigation/DiscoverStack';
+import { DiscoverStack } from '@/navigation/DiscoverStack';
 import type { GamesStackParamList } from '@/navigation/GamesStack';
 import { GamesStack } from '@/navigation/GamesStack';
 import { FavoritesScreen } from '@/screens/FavoritesScreen';
@@ -13,7 +16,8 @@ import { ProfileScreen } from '@/screens/ProfileScreen';
 export type RootTabParamList = {
   Home: undefined;
   Games: NavigatorScreenParams<GamesStackParamList> | undefined;
-  AddGame: undefined;
+  Discover: NavigatorScreenParams<DiscoverStackParamList> | undefined;
+  AddGame: NavigatorScreenParams<AddGameStackParamList> | undefined;
   Favorites: undefined;
   Profile: undefined;
 };
@@ -23,6 +27,7 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
 const TAB_ICONS: Record<keyof RootTabParamList, { active: IoniconName; inactive: IoniconName }> = {
   Home: { active: 'home', inactive: 'home-outline' },
   Games: { active: 'game-controller', inactive: 'game-controller-outline' },
+  Discover: { active: 'compass', inactive: 'compass-outline' },
   AddGame: { active: 'add-circle', inactive: 'add-circle-outline' },
   Favorites: { active: 'heart', inactive: 'heart-outline' },
   Profile: { active: 'person', inactive: 'person-outline' },
@@ -50,6 +55,7 @@ export function RootTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Games" component={GamesStack} options={{ title: 'Games' }} />
+      <Tab.Screen name="Discover" component={DiscoverStack} options={{ title: 'Discover' }} />
       <Tab.Screen name="AddGame" component={AddGameStack} options={{ title: 'Add Game' }} />
       <Tab.Screen name="Favorites" component={FavoritesScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />

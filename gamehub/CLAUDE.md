@@ -21,7 +21,8 @@ src/api/ and keeps the latest copy in React Context (see Data Layer below).
 - src/screens/    — one file per screen
 - src/components/ — shared/reusable UI pieces
 - src/navigation/ — tab + stack navigators
-- src/api/        — fetch wrapper (client.ts) and one function per endpoint
+- src/api/        — fetch wrapper (client.ts), our PHP API (games.ts) and the
+                    FreeToGame third-party API (freeToGame.ts)
 - src/context/    — GameContext (state, CRUD actions that call the API)
 - src/types/      — TypeScript types (Game, etc.)
 - src/theme/      — colors.ts and any shared style constants
@@ -39,6 +40,11 @@ isFavorite, createdAt, updatedAt
   addGame/updateGame/deleteGame are async and throw ApiError on failure —
   screens await them and show an error toast. toggleFavorite is optimistic.
 - The API base URL comes from EXPO_PUBLIC_API_URL (.env, see .env.example).
+- The Discover tab reads from the FreeToGame public API
+  (https://www.freetogame.com/api, no key; the assignment's "Part 2: External
+  Public API Integration"). It is read-only: "Add to My Library" pre-fills the
+  Add Game form, and saving still goes through our own API. Keep the
+  "Data provided by FreeToGame.com" credit that their terms ask for.
 - Any change to the Game fields must be made in three places: src/types/Game.ts,
   backend/api/games.php (validation + game_from_row) and backend/schema.sql.
 
@@ -59,9 +65,10 @@ Components never import a palette directly. Read colors with
 outside the component. Don't hardcode hex values in screens.
 
 ## Navigation
-Bottom tabs: Home, Games, Add Game, Favorites, Profile.
-Games tab and Add Game tab are stack navigators (so Game Details / Edit
-Game can be pushed on top).
+Bottom tabs: Home, Games, Discover, Add Game, Favorites, Profile.
+Games, Discover and Add Game tabs are stack navigators (so Game Details /
+Edit Game / Discover details can be pushed on top). Add Game accepts an
+optional `prefill` param from Discover.
 
 ## Coding Conventions
 - Functional components + hooks only

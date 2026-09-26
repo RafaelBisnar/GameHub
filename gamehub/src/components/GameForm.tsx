@@ -18,7 +18,7 @@ import { FormField } from '@/components/FormField';
 import { SelectField } from '@/components/SelectField';
 import { useTheme, useThemedStyles } from '@/context/ThemeContext';
 import type { ThemeColors } from '@/theme/colors';
-import type { Game, GameStatus } from '@/types/Game';
+import type { GameStatus } from '@/types/Game';
 import { parseDateString, toDateString } from '@/utils/date';
 
 const GENRES = ['Action', 'Adventure', 'RPG', 'Strategy', 'Sports', 'Simulation'];
@@ -43,7 +43,8 @@ type FormErrors = Partial<
 >;
 
 interface GameFormProps {
-  initialValues?: Game;
+  // A saved Game when editing, or partial values (e.g. imported from Discover).
+  initialValues?: Partial<GameFormValues>;
   submitLabel: string;
   // May return a promise; the submit button shows "Saving..." until it settles.
   onSubmit: (values: GameFormValues) => Promise<void> | void;
@@ -59,9 +60,7 @@ export function GameForm({ initialValues, submitLabel, onSubmit, onCancel }: Gam
   const [platform, setPlatform] = useState<string | null>(initialValues?.platform ?? null);
   const [developer, setDeveloper] = useState(initialValues?.developer ?? '');
   const [releaseDate, setReleaseDate] = useState(initialValues?.releaseDate ?? '');
-  const [ratingText, setRatingText] = useState(
-    initialValues ? initialValues.rating.toString() : ''
-  );
+  const [ratingText, setRatingText] = useState(initialValues?.rating?.toString() ?? '');
   const [multiplayerType, setMultiplayerType] = useState(
     initialValues?.multiplayerType ?? MULTIPLAYER_TYPES[0]
   );
